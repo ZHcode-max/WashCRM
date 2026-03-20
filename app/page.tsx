@@ -36,14 +36,14 @@ const font = `-apple-system, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif`;
 
 /* ───── nav ───── */
 const navItems = [
-  { id: "dashboard", label: "Dashboard" },
-  { id: "quotes", label: "Quotes" },
-  { id: "jobs", label: "Jobs" },
-  { id: "customers", label: "Customers" },
-  { id: "photos", label: "Photos" },
-  { id: "reports", label: "Reports" },
-  { id: "chemicals", label: "Chemicals" },
-  { id: "settings", label: "Settings" },
+  { id: "dashboard", label: "Dashboard", icon: "⊞" },
+  { id: "quotes", label: "Quotes", icon: "✎" },
+  { id: "jobs", label: "Jobs", icon: "▦" },
+  { id: "customers", label: "Customers", icon: "◉" },
+  { id: "photos", label: "Photos", icon: "◻" },
+  { id: "reports", label: "Reports", icon: "◈" },
+  { id: "chemicals", label: "Chemicals", icon: "◆" },
+  { id: "settings", label: "Settings", icon: "⚙" },
 ];
 
 /* ───── PW data ───── */
@@ -208,6 +208,22 @@ export default function WashCRM() {
   const [obCity, setObCity] = useState("");
   const [obServices, setObServices] = useState<string[]>([]);
   const [page, setPage] = useState("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarW, setSidebarW] = useState(56);
+  const [draggingSb, setDraggingSb] = useState(false);
+
+  useEffect(() => {
+    if (!draggingSb) return;
+    const onMove = (e: MouseEvent) => {
+      const w = Math.max(56, Math.min(280, e.clientX));
+      setSidebarW(w);
+      setSidebarOpen(w > 120);
+    };
+    const onUp = () => setDraggingSb(false);
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+    return () => { document.removeEventListener("mousemove", onMove); document.removeEventListener("mouseup", onUp); };
+  }, [draggingSb]);
   const [jobView, setJobView] = useState<"list" | "calendar">("calendar");
   const [custSearch, setCustSearch] = useState("");
   const [selectedCust, setSelectedCust] = useState<number | null>(null);
@@ -564,7 +580,7 @@ export default function WashCRM() {
 
     {/* ════════ APP ════════ */}
     {!showLanding && !showOnboarding && (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: c.bg, color: c.text, fontFamily: font, overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: c.bg, color: c.text, fontFamily: font, overflow: "hidden", ...(draggingSb ? { userSelect: "none" as const } : {}) }}>
 
       {/* ── MOBILE HEADER ── */}
       {isMobile && (
@@ -587,82 +603,126 @@ export default function WashCRM() {
 
       {/* ── SIDEBAR ── */}
       <aside style={{
-        width: 232, background: c.white, borderRight: `1px solid ${c.border}`,
-        padding: "24px 14px 20px", display: "flex", flexDirection: "column", flexShrink: 0,
-        height: "100%", overflowY: "auto",
+        width: isMobile ? 232 : sidebarW, background: c.white, borderRight: "none",
+        padding: isMobile ? "24px 14px 20px" : sidebarOpen ? "16px 12px 16px" : "16px 8px 16px",
+        display: "flex", flexDirection: "column", flexShrink: 0,
+        height: "100%", overflowY: "auto", overflowX: "hidden",
+        transition: "width 0.2s ease, padding 0.2s ease",
         ...(isMobile ? { position: "fixed", top: 52, left: 0, bottom: 0, zIndex: 100, transform: mobileMenu ? "translateX(0)" : "translateX(-100%)", transition: "transform 0.2s ease", boxShadow: mobileMenu ? "4px 0 20px rgba(0,0,0,0.1)" : "none" } : {}),
       }}>
         {/* Brand */}
-        <div onClick={() => { setPage("dashboard"); resetJob(); setSelectedCust(null); setCustSearch(""); }} style={{ padding: "0 10px", marginBottom: 32, cursor: "pointer" }}>
-          <div style={{ fontSize: 18, fontWeight: 700, color: c.text, letterSpacing: "-0.5px" }}>
-            <span style={{ color: c.accent }}>Wash</span>CRM
-          </div>
-          <div style={{ fontSize: 10, color: c.textTertiary, marginTop: 2, letterSpacing: "0.8px", fontWeight: 500 }}>
-            PRESSURE WASHING
-          </div>
+        <div onClick={() => { setPage("dashboard"); resetJob(); setSelectedCust(null); setCustSearch(""); }} style={{ padding: sidebarOpen || isMobile ? "4px 8px" : "4px 0", marginBottom: sidebarOpen || isMobile ? 24 : 16, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: sidebarOpen || isMobile ? "flex-start" : "center", gap: 8, minHeight: 32 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: c.accent, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 14, fontWeight: 700, flexShrink: 0 }}>W</div>
+          {(sidebarOpen || isMobile) && <div style={{ whiteSpace: "nowrap" }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: c.text, letterSpacing: "-0.5px" }}><span style={{ color: c.accent }}>Wash</span>CRM</div>
+          </div>}
         </div>
 
+        {/* Expand toggle — desktop only */}
+        {!isMobile && (
+          <button onClick={() => { const next = sidebarOpen ? 56 : 220; setSidebarW(next); setSidebarOpen(!sidebarOpen); }} style={{
+            display: "flex", alignItems: "center", justifyContent: "center",
+            width: sidebarOpen ? "100%" : 36, height: 28, borderRadius: 6,
+            border: `1px solid ${c.borderLight}`, background: c.surfaceAlt,
+            cursor: "pointer", fontSize: 12, color: c.textTertiary, marginBottom: 16,
+            padding: 0, fontFamily: font, transition: "width 0.2s", margin: sidebarOpen ? "0 0 16px" : "0 auto 16px",
+          }}>
+            {sidebarOpen ? "◁ Collapse" : "▷"}
+          </button>
+        )}
+
         {/* Nav */}
-        <nav style={{ display: "flex", flexDirection: "column", gap: 2, marginBottom: 24 }}>
+        <nav style={{ display: "flex", flexDirection: "column", gap: 2, marginBottom: 20 }}>
           {navItems.map((n) => (
-            <button key={n.id} onClick={() => { setPage(n.id); if (n.id === "quotes") { resetQ(); setQuotesView("list"); setExpandedQuote(null); } setSelectedCust(null); setCustSearch(""); resetJob(); setMobileMenu(false); }} style={{
-              display: "flex", alignItems: "center", padding: "8px 10px", borderRadius: 8, border: "none",
-              cursor: "pointer", fontSize: 13.5, fontWeight: page === n.id ? 600 : 400,
+            <button key={n.id} onClick={() => { setPage(n.id); if (n.id === "quotes") { resetQ(); setQuotesView("list"); setExpandedQuote(null); } setSelectedCust(null); setCustSearch(""); resetJob(); setMobileMenu(false); }} title={!sidebarOpen && !isMobile ? n.label : undefined} style={{
+              display: "flex", alignItems: "center", gap: 10,
+              padding: sidebarOpen || isMobile ? "8px 10px" : "8px 0",
+              justifyContent: sidebarOpen || isMobile ? "flex-start" : "center",
+              borderRadius: 8, border: "none", cursor: "pointer", fontFamily: font,
+              fontSize: 13.5, fontWeight: page === n.id ? 600 : 400,
               background: page === n.id ? c.accentSoft : "transparent",
               color: page === n.id ? c.accent : c.textSecondary,
-              transition: "all 0.12s",
+              transition: "all 0.12s", whiteSpace: "nowrap", overflow: "hidden",
             }}>
-              {n.label}
+              <span style={{ fontSize: 15, width: 20, textAlign: "center", flexShrink: 0, lineHeight: 1 }}>{n.icon}</span>
+              {(sidebarOpen || isMobile) && <span>{n.label}</span>}
             </button>
           ))}
         </nav>
 
-        {/* Quick actions */}
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 10, fontWeight: 600, color: c.textTertiary, letterSpacing: "1px", padding: "0 10px", marginBottom: 6 }}>ACTIONS</div>
-          {["New Quote", "New Job", "Add Customer"].map((l) => (
-            <button key={l} onClick={() => { if (l === "New Quote") { setPage("quotes"); resetQ(); setQuotesView("builder"); } if (l === "New Job") { setPage("jobs"); } if (l === "Add Customer") { setPage("customers"); setSelectedCust(null); } setMobileMenu(false); }} style={{
-              display: "block", width: "100%", textAlign: "left", padding: "6px 10px",
-              borderRadius: 6, border: "none", cursor: "pointer", fontSize: 12.5,
-              color: c.textTertiary, background: "transparent", fontFamily: font,
-            }}>+ {l}</button>
-          ))}
-        </div>
+        {/* Quick actions — expanded */}
+        {(sidebarOpen || isMobile) && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: c.textTertiary, letterSpacing: "1px", padding: "0 10px", marginBottom: 6 }}>ACTIONS</div>
+            {["New Quote", "New Job", "Add Customer"].map((l) => (
+              <button key={l} onClick={() => { if (l === "New Quote") { setPage("quotes"); resetQ(); setQuotesView("builder"); } if (l === "New Job") { setPage("jobs"); } if (l === "Add Customer") { setPage("customers"); setSelectedCust(null); } setMobileMenu(false); }} style={{
+                display: "block", width: "100%", textAlign: "left", padding: "6px 10px",
+                borderRadius: 6, border: "none", cursor: "pointer", fontSize: 12.5,
+                color: c.textTertiary, background: "transparent", fontFamily: font,
+              }}>+ {l}</button>
+            ))}
+          </div>
+        )}
+        {/* Quick add — collapsed */}
+        {!sidebarOpen && !isMobile && (
+          <button onClick={() => { setPage("quotes"); resetQ(); setQuotesView("builder"); }} title="New Quote" style={{
+            width: 36, height: 36, borderRadius: 8, border: `1px solid ${c.accentBorder}`,
+            background: c.accentSoft, color: c.accent, fontSize: 18, fontWeight: 500,
+            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+            marginBottom: 20, fontFamily: font, padding: 0, margin: "0 auto 20px",
+          }}>+</button>
+        )}
 
         {/* Weather */}
         <div style={{ marginTop: "auto" }}>
-          <div style={{ background: c.surfaceAlt, borderRadius: 10, padding: "14px 12px", border: `1px solid ${c.borderLight}` }}>
-            <div onClick={() => setWeatherExpanded(!weatherExpanded)} style={{ fontSize: 10, fontWeight: 600, color: c.textTertiary, letterSpacing: "1px", marginBottom: 10, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span>FORECAST</span>
-              <span style={{ fontSize: 12, transform: weatherExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s" }}>▾</span>
+          {(sidebarOpen || isMobile) ? (
+            <div style={{ background: c.surfaceAlt, borderRadius: 10, padding: "14px 12px", border: `1px solid ${c.borderLight}` }}>
+              <div onClick={() => setWeatherExpanded(!weatherExpanded)} style={{ fontSize: 10, fontWeight: 600, color: c.textTertiary, letterSpacing: "1px", marginBottom: 10, cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span>FORECAST</span>
+                <span style={{ fontSize: 12, transform: weatherExpanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.15s" }}>▾</span>
+              </div>
+              {weather.map((w) => (
+                <div key={w.day} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0" }}>
+                  <span style={{ fontSize: 12, color: c.textSecondary, minWidth: 36 }}>{w.day}</span>
+                  <span style={{ fontSize: 12, fontWeight: 500, color: c.text }}>{w.temp}</span>
+                  <span style={{ fontSize: 11, fontWeight: 500, color: parseInt(w.rain) > 40 ? c.red : c.textTertiary, minWidth: 28, textAlign: "right" }}>{w.rain}</span>
+                </div>
+              ))}
+              {parseInt(weather[2].rain) > 40 && (
+                <div style={{ fontSize: 11, color: c.red, marginTop: 10, padding: "7px 10px", background: c.redSoft, borderRadius: 6, border: `1px solid ${c.redBorder}` }}>Fri: Rain likely — review schedule</div>
+              )}
+              {weatherExpanded && (
+                <div style={{ marginTop: 12, paddingTop: 10, borderTop: `1px solid ${c.borderLight}` }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: c.textTertiary, letterSpacing: "0.5px", marginBottom: 8 }}>AFFECTED JOBS</div>
+                  {jobs.filter(j => j.dayIdx === 4).length > 0 ? jobs.filter(j => j.dayIdx === 4).map(j => (
+                    <div key={j.client} onClick={() => { setPage("jobs"); setActiveJob(j.client); setJobPhase("preview"); setMobileMenu(false); }} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", cursor: "pointer" }}>
+                      <span style={{ fontSize: 11, color: c.red, fontWeight: 500 }}>{j.client}</span>
+                      <span style={{ fontSize: 11, color: c.textTertiary }}>{j.amount}</span>
+                    </div>
+                  )) : <div style={{ fontSize: 11, color: c.textTertiary }}>No jobs on rain days</div>}
+                  <button onClick={() => { setPage("jobs"); setMobileMenu(false); }} style={{ marginTop: 8, width: "100%", padding: "6px", background: c.redSoft, color: c.red, border: `1px solid ${c.redBorder}`, borderRadius: 6, fontSize: 11, fontWeight: 500, cursor: "pointer", fontFamily: font }}>Review schedule</button>
+                </div>
+              )}
             </div>
-            {weather.map((w) => (
-              <div key={w.day} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0" }}>
-                <span style={{ fontSize: 12, color: c.textSecondary, minWidth: 36 }}>{w.day}</span>
-                <span style={{ fontSize: 12, fontWeight: 500, color: c.text }}>{w.temp}</span>
-                <span style={{ fontSize: 11, fontWeight: 500, color: parseInt(w.rain) > 40 ? c.red : c.textTertiary, minWidth: 28, textAlign: "right" }}>{w.rain}</span>
-              </div>
-            ))}
-            {parseInt(weather[2].rain) > 40 && (
-              <div style={{ fontSize: 11, color: c.red, marginTop: 10, padding: "7px 10px", background: c.redSoft, borderRadius: 6, border: `1px solid ${c.redBorder}` }}>
-                Fri: Rain likely — review schedule
-              </div>
-            )}
-            {weatherExpanded && (
-              <div style={{ marginTop: 12, paddingTop: 10, borderTop: `1px solid ${c.borderLight}` }}>
-                <div style={{ fontSize: 10, fontWeight: 600, color: c.textTertiary, letterSpacing: "0.5px", marginBottom: 8 }}>AFFECTED JOBS</div>
-                {jobs.filter(j => j.dayIdx === 4).length > 0 ? jobs.filter(j => j.dayIdx === 4).map(j => (
-                  <div key={j.client} onClick={() => { setPage("jobs"); setActiveJob(j.client); setJobPhase("preview"); setMobileMenu(false); }} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", cursor: "pointer" }}>
-                    <span style={{ fontSize: 11, color: c.red, fontWeight: 500 }}>{j.client}</span>
-                    <span style={{ fontSize: 11, color: c.textTertiary }}>{j.amount}</span>
-                  </div>
-                )) : <div style={{ fontSize: 11, color: c.textTertiary }}>No jobs on rain days</div>}
-                <button onClick={() => { setPage("jobs"); setMobileMenu(false); }} style={{ marginTop: 8, width: "100%", padding: "6px", background: c.redSoft, color: c.red, border: `1px solid ${c.redBorder}`, borderRadius: 6, fontSize: 11, fontWeight: 500, cursor: "pointer", fontFamily: font }}>Review schedule</button>
-              </div>
-            )}
-          </div>
+          ) : (
+            <div onClick={() => setSidebarOpen(true)} title="Expand for weather" style={{ width: 36, padding: "10px 0", background: c.surfaceAlt, borderRadius: 8, border: `1px solid ${c.borderLight}`, textAlign: "center", cursor: "pointer", margin: "0 auto" }}>
+              <div style={{ fontSize: 12, color: c.text, fontWeight: 500 }}>{weather[0].temp.split("°")[0]}°</div>
+              <div style={{ fontSize: 10, color: parseInt(weather[2].rain) > 40 ? c.red : c.textTertiary, fontWeight: 500, marginTop: 2 }}>{parseInt(weather[2].rain) > 40 ? "!" : "~"}</div>
+            </div>
+          )}
         </div>
       </aside>
+      {/* Drag handle */}
+      {!isMobile && (
+        <div onMouseDown={() => setDraggingSb(true)} style={{
+          width: 5, cursor: "col-resize", background: draggingSb ? c.accent : "transparent",
+          borderRight: `1px solid ${c.border}`, flexShrink: 0,
+          transition: draggingSb ? "none" : "background 0.15s",
+        }}
+        onMouseEnter={(e) => { if (!draggingSb) (e.currentTarget as HTMLDivElement).style.background = c.borderLight; }}
+        onMouseLeave={(e) => { if (!draggingSb) (e.currentTarget as HTMLDivElement).style.background = "transparent"; }}
+        />
+      )}
 
       {/* ── MAIN ── */}
       <main style={{ flex: 1, padding: isMobile ? "20px 16px" : "28px 40px", overflowY: "auto", height: "100%" }}>
