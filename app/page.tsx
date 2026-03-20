@@ -300,7 +300,7 @@ export default function WashCRM() {
 
         {/* Hero */}
         <div style={{ maxWidth: 1100, margin: "0 auto", padding: isMobile ? "48px 20px 40px" : "80px 28px 60px", textAlign: "center" }}>
-          <div style={{ display: "inline-block", padding: "5px 14px", background: c.greenSoft, border: `1px solid ${c.greenBorder}`, borderRadius: 20, fontSize: 12, color: c.green, fontWeight: 500, marginBottom: 20 }}>Built by a pressure washer, for pressure washers</div>
+          <div style={{ display: "inline-block", padding: "5px 14px", background: c.greenSoft, border: `1px solid ${c.greenBorder}`, borderRadius: 20, fontSize: 12, color: c.green, fontWeight: 500, marginBottom: 20 }}>Built specifically for pressure washing companies</div>
           <h1 style={{ fontSize: isMobile ? 32 : 52, fontWeight: 800, color: c.text, margin: "0 0 16px", letterSpacing: "-2px", lineHeight: 1.1 }}>
             Stop losing jobs.<br />Start getting paid faster.
           </h1>
@@ -454,7 +454,7 @@ export default function WashCRM() {
 
         {/* Footer */}
         <div style={{ borderTop: `1px solid ${c.border}`, padding: "24px 28px", textAlign: "center" }}>
-          <span style={{ fontSize: 12, color: c.textTertiary }}>© 2026 WashCRM. Built for pressure washers, by pressure washers.</span>
+          <span style={{ fontSize: 12, color: c.textTertiary }}>© 2026 WashCRM. Built specifically for pressure washing companies.</span>
         </div>
       </div>
     )}
